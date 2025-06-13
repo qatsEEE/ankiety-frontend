@@ -19,7 +19,8 @@
       font-family: 'Poppins', sans-serif;
       background-color: #000;
       color: #fff;
-      overflow: hidden; /* Prevent scrollbars if tsParticles overflows */
+      /* overflow-x: hidden; */ /* Only prevent horizontal scroll if needed, vertical is usually fine */
+      /* overflow: hidden; can sometimes cut off content if it exceeds viewport height */
     }
     #tsparticles {
       position: fixed;
@@ -29,9 +30,9 @@
     }
     #app-container {
       position: relative; /* Ensure it's above tsParticles */
-      z-index: 1;
+      z-index: 1; /* Higher z-index than #tsparticles */
       max-width: 700px;
-      margin: 5vh auto;
+      margin: 5vh auto; /* 5% viewport height margin top/bottom, auto for horizontal centering */
       background: rgba(0,0,0,0.7); /* Semi-transparent background for readability */
       padding: 2rem;
       border-radius: 20px;
@@ -77,12 +78,19 @@
 
   <script>
     // Initialize tsParticles with the stars preset
+    // This script block is moved to the end of <body> for better reliability
     (async () => {
-      await loadStarsPreset(tsParticles);
-      await tsParticles.load("tsparticles", {
-        preset: "stars",
-        fullScreen: { enable: true, zIndex: 0 } // Ensures full screen and correct layering
-      });
+      // It's good practice to ensure tsParticles is loaded before attempting to use it
+      if (typeof tsParticles !== 'undefined' && typeof loadStarsPreset !== 'undefined') {
+        await loadStarsPreset(tsParticles);
+        await tsParticles.load("tsparticles", {
+          preset: "stars",
+          fullScreen: { enable: true, zIndex: 0 } // Ensures full screen and correct layering
+        });
+        console.log("tsParticles stars background initialized.");
+      } else {
+        console.error("tsParticles or loadStarsPreset not loaded correctly.");
+      }
     })();
 
     // API URL for your poll backend
@@ -97,13 +105,14 @@
         const resp = await fetch(`${apiUrl}/polls/1`); // Fetching poll with ID 1
         if (!resp.ok) {
           container.innerHTML = `<p>Nie znaleziono ankiety.</p>`;
+          console.error(`Failed to fetch poll: ${resp.status} ${resp.statusText}`);
           return;
         }
         currentPollData = await resp.json();
         renderOptions(); // Render the options once data is fetched
       } catch (err) {
         container.innerHTML = `<p>Błąd ładowania danych.</p>`;
-        console.error("Error fetching poll:", err);
+        console.error("Error fetching poll data:", err);
       }
     }
 
@@ -131,12 +140,17 @@
       if (optionElement) optionElement.style.pointerEvents = "none"; // Disable clicking after vote
 
       try {
-        await fetch(`${apiUrl}/polls/vote`, {
+        const response = await fetch(`${apiUrl}/polls/vote`, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ OptionId: optionId })
         });
-        // Note: The SignalR 'newVote' event will trigger renderOptions
+
+        if (!response.ok) {
+          console.error(`Failed to post vote: ${response.status} ${response.statusText}`);
+          // You might want to show an error message to the user here
+        }
+        // Note: The SignalR 'newVote' event will trigger renderOptions if successful on server
       } catch (e) {
         console.error("Error casting vote:", e);
       } finally {
@@ -155,6 +169,7 @@
 
     // Event listener for "newVote" from the SignalR hub
     connection.on("newVote", (pollId, optionId, newVotes) => {
+      // console.log(`New vote received: PollId=${pollId}, OptionId=${optionId}, NewVotes=${newVotes}`);
       if (!currentPollData || pollId !== currentPollData.Id) return; // Ensure it's for the current poll
 
       const updatedOption = currentPollData.Options.find(o => o.Id === optionId);
@@ -173,6 +188,7 @@
       } catch (e) {
         console.error("Błąd połączenia z SignalR:", e);
         // Fallback: if SignalR fails, still try to load the poll once
+        // so the poll data is at least displayed, even if not real-time.
         fetchAndRenderPoll(); 
       }
     })();
