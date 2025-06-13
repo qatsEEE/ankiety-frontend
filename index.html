@@ -2,261 +2,26 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Ankieta Motoryzacyjna Premium</title>
+  <title>Ankieta z Tłem Stars</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <!-- Font & Icons -->
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
 
-  <!-- Czcionka i ikony -->
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <!-- SignalR (naprawione źródło) -->
+  <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
 
-  <!-- tsParticles -->
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles-engine@2/tsparticles.engine.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles-preset-fire@2/tsparticles.preset.fire.bundle.min.js"></script>
+  <!-- tsParticles Stars Preset -->
+  <script src="https://cdn.jsdelivr.net/npm/tsparticles@3/tsparticles.bundle.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@tsparticles/preset-stars@3/tsparticles.preset.stars.bundle.min.js"></script>
 
   <style>
     body {
       margin: 0;
-      padding: 0;
-      font-family: 'Poppins', sans-serif;
-      background-color: #000; /* Czarne tło dla lepszej widoczności fire preset */
-      color: #fff;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      overflow: hidden;
-    }
-
-    #app-container {
-      position: relative;
-      z-index: 1;
-      background-color: rgba(255, 255, 255, 0.05);
-      backdrop-filter: blur(12px);
-      -webkit-backdrop-filter: blur(12px);
-      border-radius: 20px;
-      padding: 2.5rem 3rem;
-      max-width: 700px;
-      width: 100%;
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
-      border: 1px solid rgba(255, 255, 255, 0.1);
-    }
-
-    h1, h2 {
-      text-align: center;
-    }
-
-    .option {
-      background-color: rgba(255, 255, 255, 0.07);
-      margin: 1rem 0;
-      padding: 1rem;
-      border-radius: 12px;
-      transition: 0.3s;
-      cursor: pointer;
-    }
-
-    .option:hover {
-      background-color: rgba(255, 255, 255, 0.15);
-    }
-
-    .bar-container {
-      background-color: rgba(255,255,255,0.1);
-      height: 8px;
-      border-radius: 4px;
-      margin-top: 0.5rem;
-    }
-
-    .bar {
-      height: 100%;
-      border-radius: 4px;
-      background: linear-gradient(to right, #ff4d4d, #ff0000);
-      width: 0%;
-      transition: width 0.5s ease;
-    }
-
-    .votes-display {
-      font-size: 0.9em;
-      opacity: 0.8;
-      margin-top: 0.3rem;
-    }
-
-    #tsparticles {
-      position: fixed;
-      top: 0; left: 0;
-      width: 100%;
-      height: 100%;
-      z-index: 0;
-    }
-  </style>
-</head>
-<body>
-  <div id="tsparticles"></div>
-
-  <div id="app-container">
-    <h1>Ankieta Motoryzacyjna</h1>
-    <div id="poll-container">
-      <div class="loading-text">Ładowanie ankiety...</div>
-    </div>
-  </div>
-
-  <script>
-    const apiUrl = "https://ankietyapi-da.azurewebsites.net/api";
-    const pollIdToLoad = 1;
-    const container = document.getElementById('poll-container');
-    let currentPollData = null;
-
-    async function fetchAndRenderPoll() {
-      try {
-        const response = await fetch(`${apiUrl}/polls/${pollIdToLoad}`);
-        if (!response.ok) {
-          container.innerHTML = `<div><h2>Nie znaleziono ankiety o ID=${pollIdToLoad}.</h2><p>Użyj Postmana, aby ją stworzyć.</p></div>`;
-          return;
-        }
-        currentPollData = await response.json();
-        renderOptions();
-      } catch (error) {
-        container.innerHTML = `<div><h2>Błąd podczas ładowania ankiety.</h2></div>`;
-        console.error(error);
-      }
-    }
-
-    function renderOptions() {
-      if (!currentPollData) return;
-      const totalVotes = currentPollData.Options.reduce((sum, opt) => sum + opt.Votes, 0);
-
-      let html = `<h2>Która marka samochodów jest Twoim zdaniem najlepsza?</h2>`;
-      currentPollData.Options.forEach(opt => {
-        const percent = totalVotes > 0 ? ((opt.Votes / totalVotes) * 100).toFixed(1) : 0;
-        html += `
-          <div class="option" onclick="vote(event, ${opt.Id})" id="option-${opt.Id}">
-            <strong>${opt.Text}</strong>
-            <div class="votes-display">${opt.Votes} głosów (${percent}%)</div>
-            <div class="bar-container"><div class="bar" style="width:${percent}%"></div></div>
-          </div>
-        `;
-      });
-      container.innerHTML = html;
-    }
-
-    async function vote(event, optionId) {
-      const el = document.getElementById(`option-${optionId}`);
-      if (!el) return;
-      el.style.pointerEvents = 'none';
-
-      try {
-        await fetch(`${apiUrl}/polls/vote`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ OptionId: optionId })
-        });
-      } catch (err) {
-        console.error("Błąd podczas głosowania:", err);
-      } finally {
-        setTimeout(() => {
-          el.style.pointerEvents = 'auto';
-        }, 1000);
-      }
-    }
-
-    // SignalR
-    const connection = new signalR.HubConnectionBuilder()
-      .withUrl(`${apiUrl}`)
-      .withAutomaticReconnect()
-      .build();
-
-    connection.on("newVote", (pollId, optionId, newVoteCount) => {
-      if (currentPollData && pollId === currentPollData.Id) {
-        const opt = currentPollData.Options.find(o => o.Id === optionId);
-        if (opt) {
-          opt.Votes = newVoteCount;
-          renderOptions();
-        }
-      }
-    });
-
-    async function startSignalR() {
-      try {
-        await connection.start();
-        console.log("Połączono z SignalR");
-      } catch (err) {
-        console.error("Błąd połączenia z SignalR:", err);
-      }
-    }
-
-    fetchAndRenderPoll();
-    startSignalR();
-
-    // tsParticles fire preset
-    (async () => {
-      await loadFirePreset(tsParticles);
-      await tsParticles.load("tsparticles", {
-        preset: "fire",
-        fullScreen: { enable: true, zIndex: -1 },
-        detectRetina: true
-      });
-    })();
-  </script>
-
-  <!-- SignalR -->
-  <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
-</body>
-</html>
-✅ Gotowe do użytku!
-
-Czarne tło ✔️
-
-Animowane, czerwone efekty cząsteczek (ogień/popiół) ✔️
-
-Twoja ankieta działa bez zmian ✔️
-
-Daj znać, jeśli chcesz zmienić gęstość, kolor lub dodać inne efekty (spark, links, twinkle).
-
-
-
-
-
-
-
-Powiedziałeś(-aś):
-Nie działa, jest tylko czarne tło i pytanie dlaczego w konsoli mam: Uncaught ReferenceError: signalR is not defined
-    at (index):163:24
-
-
-ChatGPT powiedział:
-Rzeczywiście — błąd signalR is not defined oznacza, że próbujesz korzystać ze signalR zanim jego skrypt się załaduje. Musimy:
-
-Przenieść <script src=".../signalr.min.js"> na górę, tak, aby był dostępny przed użyciem WebSocketów.
-
-Upewnić się, że skrypty tsParticles loadFirePreset są ładowane po załadowaniu tsParticles.engine, ale przed ich użyciem.
-
-✅ Oto poprawiona kolejność skryptów i gotowy kod HTML:
-html
-Kopiuj
-Edytuj
-<!DOCTYPE html>
-<html lang="pl">
-<head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Ankieta Motoryzacyjna Premium</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com"/>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet"/>
-  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
-  <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles-engine@2/tsparticles.engine.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/tsparticles-preset-fire@2/tsparticles.preset.fire.bundle.min.js"></script>
-  <style>
-    body {
-      margin: 0; padding: 0;
       font-family: 'Poppins', sans-serif;
       background-color: #000;
       color: #fff;
-      min-height: 100vh;
-      display: flex;
-      justify-content: center;
-      align-items: center;
       overflow: hidden;
     }
     #tsparticles {
@@ -266,58 +31,62 @@ Edytuj
       z-index: 0;
     }
     #app-container {
-      position: relative; z-index: 1;
-      background-color: rgba(255,255,255,0.05);
-      backdrop-filter: blur(12px);
-      border-radius: 20px;
+      position: relative;
+      z-index: 1;
+      max-width: 700px;
+      margin: 5vh auto;
+      background: rgba(0,0,0,0.7);
       padding: 2rem;
-      max-width: 700px; width: 100%;
-      box-shadow: 0 8px 32px rgba(0,0,0,0.4);
-      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(255,255,255,0.1);
     }
-    h1 { text-align:center; margin-top:0; }
     .option {
-      background-color: rgba(255,255,255,0.07);
       margin: 1rem 0;
+      background: rgba(255,255,255,0.05);
       padding: 1rem;
       border-radius: 12px;
       cursor: pointer;
-      transition: background-color 0.3s;
+      transition: background 0.3s;
     }
-    .option:hover { background-color: rgba(255,255,255,0.15); }
+    .option:hover {
+      background: rgba(255,255,255,0.15);
+    }
     .bar-container {
-      background-color: rgba(255,255,255,0.1);
-      border-radius: 4px; height: 8px; margin-top: 0.5rem;
+      background: rgba(255,255,255,0.1);
+      height: 8px;
+      border-radius: 5px;
+      margin-top: 0.5rem;
     }
     .bar {
-      height: 100%; border-radius: 4px;
-      background: linear-gradient(to right, #ff4d4d, #ff0000);
-      width: 0; transition: width 0.5s ease;
-    }
-    .votes-display {
-      font-size: 0.9em; opacity: 0.8; margin-top: 0.3rem;
+      height: 100%;
+      border-radius: 5px;
+      background: linear-gradient(to right, #00f2ff, #0055ff);
+      width: 0;
+      transition: width 0.3s ease;
     }
   </style>
 </head>
 <body>
   <div id="tsparticles"></div>
+
   <div id="app-container">
-    <h1>Ankieta Motoryzacyjna</h1>
-    <div id="poll-container"><div class="loading-text">Ładowanie ankiety...</div></div>
+    <h1>Ankieta: Ulubiona Marka Samochodu</h1>
+    <div id="poll-container">Ładowanie...</div>
   </div>
 
   <script>
-    // tsParticles + preset fire
+    // tsParticles stars preset
     (async () => {
-      await loadFirePreset(tsParticles);
+      await loadStarsPreset(tsParticles);
       await tsParticles.load("tsparticles", {
-        preset: "fire",
-        fullScreen: { enable: true, zIndex: 0 },
-        detectRetina: true
+        preset: "stars",
+        fullScreen: { enable: true, zIndex: 0 }
       });
     })();
 
+    // Zmienna API (tylko raz!)
     const apiUrl = "https://ankietyapi-da.azurewebsites.net/api";
+
     const container = document.getElementById("poll-container");
     let currentPollData = null;
 
@@ -325,13 +94,13 @@ Edytuj
       try {
         const resp = await fetch(`${apiUrl}/polls/1`);
         if (!resp.ok) {
-          container.innerHTML = `<div><h2>Nie znaleziono ankiety o ID=1.</h2></div>`;
+          container.innerHTML = `<p>Nie znaleziono ankiety.</p>`;
           return;
         }
         currentPollData = await resp.json();
         renderOptions();
       } catch (err) {
-        container.innerHTML = `<div><h2>Błąd ładowania ankiety.</h2></div>`;
+        container.innerHTML = `<p>Błąd ładowania danych.</p>`;
         console.error(err);
       }
     }
@@ -339,13 +108,13 @@ Edytuj
     function renderOptions() {
       if (!currentPollData) return;
       const total = currentPollData.Options.reduce((s, o) => s + o.Votes, 0);
-      let html = `<h2>Która marka samochodów jest Twoim zdaniem najlepsza?</h2>`;
+      let html = "";
       currentPollData.Options.forEach(opt => {
         const pct = total ? ((opt.Votes/total)*100).toFixed(1) : 0;
         html += `
           <div class="option" onclick="vote(${opt.Id})" id="opt-${opt.Id}">
             <strong>${opt.Text}</strong>
-            <div class="votes-display">${opt.Votes} głosów (${pct}%)</div>
+            <div>${opt.Votes} głosów (${pct}%)</div>
             <div class="bar-container"><div class="bar" style="width:${pct}%"></div></div>
           </div>`;
       });
@@ -356,28 +125,42 @@ Edytuj
       const el = document.getElementById(`opt-${id}`);
       if (el) el.style.pointerEvents = "none";
       try {
-        await fetch(`${apiUrl}/polls/vote`, {method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({OptionId:id})});
-      } catch(e) { console.error(e); }
-      setTimeout(()=>{ if(el) el.style.pointerEvents="auto"; },1000);
+        await fetch(`${apiUrl}/polls/vote`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ OptionId: id })
+        });
+      } catch (e) {
+        console.error(e);
+      }
+      setTimeout(() => {
+        if (el) el.style.pointerEvents = "auto";
+      }, 1000);
     }
 
-    // SignalR
+    // SignalR real-time update
     const conn = new signalR.HubConnectionBuilder()
       .withUrl(apiUrl)
       .withAutomaticReconnect()
       .build();
 
-    conn.on("newVote", (pid, oid, newCount) => {
-      if (currentPollData && pid === currentPollData.Id) {
-        const o = currentPollData.Options.find(o=>o.Id===oid);
-        if (o) { o.Votes = newCount; renderOptions(); }
+    conn.on("newVote", (pollId, optionId, newVotes) => {
+      if (!currentPollData || pollId !== currentPollData.Id) return;
+      const option = currentPollData.Options.find(o => o.Id === optionId);
+      if (option) {
+        option.Votes = newVotes;
+        renderOptions();
       }
     });
 
     (async () => {
-      await conn.start();
-      console.log("SignalR połączone");
-      fetchAndRenderPoll();
+      try {
+        await conn.start();
+        console.log("Połączono z SignalR");
+        fetchAndRenderPoll();
+      } catch (e) {
+        console.error("SignalR error", e);
+      }
     })();
   </script>
 </body>
