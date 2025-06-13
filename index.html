@@ -1,0 +1,93 @@
+﻿<!DOCTYPE html>
+<html lang="pl">
+<head>
+    <meta charset="UTF-8">
+    <title>System Ankiet</title>
+    <style>
+        body { font-family: sans-serif; }
+        .option { margin: 5px; padding: 10px; border: 1px solid #ccc; }
+        .bar { background-color: lightblue; height: 20px; display: inline-block; transition: width 0.5s; }
+    </style>
+</head>
+<body>
+<h1>Jaki jest Twój ulubiony język programowania?</h1>
+<div id="poll-container">
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
+<script>
+    const apiUrl = "https://ankietyapi-da.azurewebsites.net/api"; // Zmień na URL opublikowanej funkcji
+
+    // Przykładowe dane ankiety (w pełnej aplikacji pobrałbyś je z API)
+    const pollId = 1;
+    const options = [
+        { id: 1, text: "C#", votes: 5 },
+        { id: 2, text: "JavaScript", votes: 8 },
+        { id: 3, text: "Python", votes: 3 }
+    ];
+
+    const container = document.getElementById('poll-container');
+
+    // Funkcja do rysowania opcji ankiety
+    function renderOptions() {
+        container.innerHTML = '';
+        const totalVotes = options.reduce((sum, opt) => sum + opt.votes, 0);
+
+        options.forEach(opt => {
+            const percentage = totalVotes > 0 ? (opt.votes / totalVotes) * 100 : 0;
+            container.innerHTML += `
+                    <div class="option" id="option-${opt.id}">
+                        <span>${opt.text} (${opt.votes})</span>
+                        <div class="bar" style="width: ${percentage}%;"></div>
+                        <button onclick="vote(${opt.id})">Głosuj</button>
+                    </div>
+                `;
+        });
+    }
+
+    // Funkcja do głosowania
+    async function vote(optionId) {
+        await fetch(`${apiUrl}/vote`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ optionId: optionId })
+        });
+    }
+
+    // Logika SignalR
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl(`${apiUrl}`) // Używa funkcji 'negotiate' w tle
+        .build();
+
+    // Co zrobić, gdy nadejdzie nowa wiadomość 'newVote'
+    connection.on("newVote", (updatedPollId, updatedOptionId, newVoteCount) => {
+        console.log(`Nowy głos! Ankieta: ${updatedPollId}, Opcja: ${updatedOptionId}, Głosy: ${newVoteCount}`);
+        if (updatedPollId === pollId) {
+            const option = options.find(o => o.id === updatedOptionId);
+            if (option) {
+                option.votes = newVoteCount;
+                renderOptions(); // Prerysuj widok z nowymi danymi
+            }
+        }
+    });
+
+    async function start() {
+        try {
+            await connection.start();
+            console.log("SignalR Connected.");
+        } catch (err) {
+            console.log(err);
+            setTimeout(start, 5000);
+        }
+    };
+
+    connection.onclose(async () => {
+        await start();
+    });
+
+    // Start
+    renderOptions();
+    start();
+</script>
+</body>
+</html>
