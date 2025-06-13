@@ -1,274 +1,292 @@
 <!DOCTYPE html>
 <html lang="pl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ankieta Motoryzacyjna Premium</title>
-    <!-- Dodanie nowoczesnej czcionki z Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
-    <!-- Biblioteka ikon dla efektów -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <style>
-        /* === ZAAWANSOWANY, ANIMOWANY WYGLĄD === */
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Ankieta Motoryzacyjna Premium</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <style>
+    :root {
+      --primary-color: #121212;
+      --secondary-color: #8b0000;
+      --accent-color: #ff3c3c;
+      --card-background: rgba(25, 25, 25, 0.75);
+      --text-color: #f5f5f5;
+      --shadow-color: rgba(0, 0, 0, 0.7);
+      --glow-color: rgba(255, 60, 60, 0.6);
+    }
 
-        :root {
-            --primary-color: #0077b6;
-            --secondary-color: #00b4d8;
-            --accent-color: #ade8f4;
-            --card-background: rgba(255, 255, 255, 0.1);
-            --text-color: #f0f8ff;
-            --light-gray: rgba(255, 255, 255, 0.2);
-            --shadow-color: rgba(0, 0, 0, 0.2);
-            --glow-color: rgba(173, 232, 244, 0.7);
-        }
-        
-        /* Definicje animacji (Keyframes) */
-        @keyframes background-pan {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-        }
+    @keyframes background-pan {
+      0% {
+        background-position: 0% 50%;
+      }
+      50% {
+        background-position: 100% 50%;
+      }
+      100% {
+        background-position: 0% 50%;
+      }
+    }
 
-        @keyframes fadeInUp {
-            from { opacity: 0; transform: translateY(20px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-        
-        @keyframes vote-ripple {
-            to { transform: scale(4); opacity: 0; }
-        }
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
 
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #023e8a, #0077b6, #00b4d8, #48cae4);
-            background-size: 400% 400%;
-            color: var(--text-color);
-            margin: 0;
-            padding: 2rem;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            min-height: 100vh;
-            overflow: hidden; /* Ukrywa suwaki, gdy tło się porusza */
-            animation: background-pan 20s ease-in-out infinite;
-        }
+    @keyframes vote-ripple {
+      to {
+        transform: scale(4);
+        opacity: 0;
+      }
+    }
 
-        #app-container {
-            background-color: var(--card-background);
-            border: 1px solid rgba(255, 255, 255, 0.18);
-            border-radius: 20px;
-            box-shadow: 0 8px 32px 0 var(--shadow-color);
-            backdrop-filter: blur(12px); /* Efekt "oszronionego szkła" */
-            -webkit-backdrop-filter: blur(12px);
-            padding: 2.5rem 3.5rem;
-            width: 100%;
-            max-width: 750px;
-        }
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: linear-gradient(
+        135deg,
+        #0d0d0d,
+        #1a1a1a,
+        #2a2a2a,
+        #8b0000,
+        #1a1a1a
+      );
+      background-size: 600% 600%;
+      animation: background-pan 25s ease-in-out infinite;
+      color: var(--text-color);
+      margin: 0;
+      padding: 2rem;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      overflow: hidden;
+    }
 
-        h1, h2 {
-            text-align: center;
-            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-        }
-        h1 {
-            color: #fff;
-            font-weight: 700;
-        }
-        h2 {
-            color: var(--accent-color);
-            margin-top: 0;
-            margin-bottom: 2.5rem;
-            font-weight: 400;
-        }
-        
-        .option {
-            margin-bottom: 1rem;
-            position: relative;
-            border-radius: 12px;
-            overflow: hidden;
-            opacity: 0;
-            animation: fadeInUp 0.6s ease-out forwards;
-            transition: transform 0.3s ease, box-shadow 0.3s ease;
-        }
-        
-        .option:hover {
-            transform: scale(1.03);
-            box-shadow: 0 0 25px var(--glow-color);
-            z-index: 10;
-        }
+    #app-container {
+      background-color: var(--card-background);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 20px;
+      box-shadow: 0 8px 32px 0 var(--shadow-color);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      padding: 2.5rem 3.5rem;
+      width: 100%;
+      max-width: 750px;
+      transition: box-shadow 0.3s ease;
+    }
 
-        .option-content {
-            padding: 1rem 1.5rem;
-            background-color: rgba(0,0,0,0.2);
-            cursor: pointer;
-        }
+    h1, h2 {
+      text-align: center;
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+    }
 
-        .option-label {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 600;
-        }
-        
-        .votes-display {
-            font-size: 0.9em;
-            opacity: 0.8;
-        }
-        
-        /* Animowany pseudo-element na hover */
-        .option-label span::after {
-            content: '\f0a9'; /* Ikona strzałki z Font Awesome */
-            font-family: 'Font Awesome 6 Free';
-            font-weight: 900;
-            margin-left: 10px;
-            opacity: 0;
-            transition: opacity 0.3s ease;
-        }
-        .option:hover .option-label span::after {
-            opacity: 1;
-        }
+    h1 {
+      color: #fff;
+      font-weight: 700;
+      font-size: 2.2rem;
+    }
 
-        .bar-container {
-            background-color: rgba(0,0,0,0.3);
-            height: 10px;
-            margin-top: 0.75rem;
-            border-radius: 5px;
-        }
-        .bar {
-            background: linear-gradient(90deg, var(--accent-color), var(--secondary-color));
-            height: 100%;
-            border-radius: 5px;
-            transition: width 0.8s cubic-bezier(0.25, 1, 0.5, 1);
-        }
-        
-        /* Animacja kliknięcia */
-        .ripple {
-            position: absolute;
-            border-radius: 50%;
-            background-color: rgba(255, 255, 255, 0.7);
-            transform: scale(0);
-            animation: vote-ripple 0.6s linear;
-            pointer-events: none;
-        }
-        
-        .loading-text, .error-text {
-             text-align: center;
-             padding: 3rem;
-             font-size: 1.2em;
-        }
-    </style>
+    h2 {
+      color: var(--accent-color);
+      margin-top: 0;
+      margin-bottom: 2.5rem;
+      font-weight: 400;
+      font-size: 1.3rem;
+    }
+
+    .option {
+      margin-bottom: 1rem;
+      position: relative;
+      border-radius: 12px;
+      overflow: hidden;
+      opacity: 0;
+      animation: fadeInUp 0.6s ease-out forwards;
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+
+    .option:hover {
+      transform: scale(1.04);
+      box-shadow: 0 0 25px var(--glow-color), 0 0 12px rgba(255, 0, 0, 0.25);
+      z-index: 10;
+    }
+
+    .option-content {
+      padding: 1rem 1.5rem;
+      background-color: rgba(255, 255, 255, 0.05);
+      cursor: pointer;
+    }
+
+    .option-label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-weight: 600;
+    }
+
+    .votes-display {
+      font-size: 0.9em;
+      opacity: 0.85;
+    }
+
+    .option-label span::after {
+      content: '\f0a9';
+      font-family: 'Font Awesome 6 Free';
+      font-weight: 900;
+      margin-left: 10px;
+      opacity: 0;
+      transition: opacity 0.3s ease;
+    }
+
+    .option:hover .option-label span::after {
+      opacity: 1;
+    }
+
+    .bar-container {
+      background-color: rgba(255, 255, 255, 0.08);
+      height: 10px;
+      margin-top: 0.75rem;
+      border-radius: 5px;
+    }
+
+    .bar {
+      background: linear-gradient(90deg, var(--accent-color), var(--secondary-color));
+      height: 100%;
+      border-radius: 5px;
+      transition: width 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+    }
+
+    .ripple {
+      position: absolute;
+      border-radius: 50%;
+      background-color: rgba(255, 255, 255, 0.6);
+      transform: scale(0);
+      animation: vote-ripple 0.6s linear;
+      pointer-events: none;
+    }
+
+    .loading-text, .error-text {
+      text-align: center;
+      padding: 3rem;
+      font-size: 1.2em;
+    }
+  </style>
 </head>
 <body>
-    <div id="app-container">
-        <h1>Ankieta Motoryzacyjna</h1>
-        <div id="poll-container"><div class="loading-text">Ładowanie ankiety...</div></div>
-    </div>
+  <div id="app-container">
+    <h1>Ankieta Motoryzacyjna</h1>
+    <div id="poll-container"><div class="loading-text">Ładowanie ankiety...</div></div>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
-    <script>
-        const apiUrl = "https://ankietyapi-da.azurewebsites.net/api"; 
-        const pollIdToLoad = 1; 
-        
-        const container = document.getElementById('poll-container');
-        let currentPollData = null;
+  <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
+  <script>
+    const apiUrl = "https://ankietyapi-da.azurewebsites.net/api";
+    const pollIdToLoad = 1;
 
-        async function fetchAndRenderPoll() {
-            try {
-                const response = await fetch(`${apiUrl}/polls/${pollIdToLoad}`);
-                if (!response.ok) {
-                    container.innerHTML = `<div class="error-text"><h2>Nie znaleziono ankiety o ID=${pollIdToLoad}.</h2><p>Użyj Postmana, aby ją stworzyć.</p></div>`;
-                    return;
-                }
-                currentPollData = await response.json();
-                renderOptions();
-            } catch (error) {
-                container.innerHTML = `<div class="error-text"><h2>Błąd podczas ładowania ankiety.</h2><p>Sprawdź konsolę (F12).</p></div>`;
-                console.error(error);
-            }
+    const container = document.getElementById("poll-container");
+    let currentPollData = null;
+
+    async function fetchAndRenderPoll() {
+      try {
+        const response = await fetch(`${apiUrl}/polls/${pollIdToLoad}`);
+        if (!response.ok) {
+          container.innerHTML = \`<div class="error-text"><h2>Nie znaleziono ankiety o ID=\${pollIdToLoad}.</h2><p>Użyj Postmana, aby ją stworzyć.</p></div>\`;
+          return;
         }
+        currentPollData = await response.json();
+        renderOptions();
+      } catch (error) {
+        container.innerHTML = \`<div class="error-text"><h2>Błąd podczas ładowania ankiety.</h2><p>Sprawdź konsolę (F12).</p></div>\`;
+        console.error(error);
+      }
+    }
 
-        function renderOptions() {
-            if (!currentPollData) return;
-            const totalVotes = currentPollData.Options.reduce((sum, opt) => sum + opt.Votes, 0);
-            
-            let html = `<h2>Która marka samochodów jest Twoim zdaniem najlepsza?</h2>`;
-            currentPollData.Options.forEach((opt, index) => {
-                const percentage = totalVotes > 0 ? ((opt.Votes / totalVotes) * 100).toFixed(1) : 0;
-                html += `
-                    <div class="option" id="option-${opt.Id}" onclick="vote(event, ${opt.Id})" style="animation-delay: ${index * 0.15}s">
-                       <div class="option-content">
-                            <div class="option-label">
-                                <span>${opt.Text}</span>
-                                <span class="votes-display">${opt.Votes} głosów (${percentage}%)</span>
-                            </div>
-                            <div class="bar-container">
-                                 <div class="bar" style="width: ${percentage}%;"></div>
-                            </div>
-                       </div>
-                    </div>
-                `;
-            });
-            container.innerHTML = html;
-        }
+    function renderOptions() {
+      if (!currentPollData) return;
+      const totalVotes = currentPollData.Options.reduce((sum, opt) => sum + opt.Votes, 0);
 
-        async function vote(event, optionId) {
-             const optionElement = document.getElementById(`option-${optionId}`);
-             if (!optionElement) return;
+      let html = \`<h2>Która marka samochodów jest Twoim zdaniem najlepsza?</h2>\`;
+      currentPollData.Options.forEach((opt, index) => {
+        const percentage = totalVotes > 0 ? ((opt.Votes / totalVotes) * 100).toFixed(1) : 0;
+        html += \`
+          <div class="option" id="option-\${opt.Id}" onclick="vote(event, \${opt.Id})" style="animation-delay: \${index * 0.15}s">
+            <div class="option-content">
+              <div class="option-label">
+                <span>\${opt.Text}</span>
+                <span class="votes-display">\${opt.Votes} głosów (\${percentage}%)</span>
+              </div>
+              <div class="bar-container">
+                <div class="bar" style="width: \${percentage}%;"></div>
+              </div>
+            </div>
+          </div>\`;
+      });
+      container.innerHTML = html;
+    }
 
-             // Logika animacji "ripple" po kliknięciu
-             const ripple = document.createElement('span');
-             ripple.classList.add('ripple');
-             const rect = optionElement.getBoundingClientRect();
-             ripple.style.left = `${event.clientX - rect.left}px`;
-             ripple.style.top = `${event.clientY - rect.top}px`;
-             optionElement.appendChild(ripple);
-             setTimeout(() => ripple.remove(), 600);
+    async function vote(event, optionId) {
+      const optionElement = document.getElementById(\`option-\${optionId}\`);
+      if (!optionElement) return;
 
-             // Blokuj ponowne kliknięcia na chwilę
-             optionElement.style.pointerEvents = 'none';
+      const ripple = document.createElement("span");
+      ripple.classList.add("ripple");
+      const rect = optionElement.getBoundingClientRect();
+      ripple.style.left = \`\${event.clientX - rect.left}px\`;
+      ripple.style.top = \`\${event.clientY - rect.top}px\`;
+      optionElement.appendChild(ripple);
+      setTimeout(() => ripple.remove(), 600);
 
-             try {
-                await fetch(`${apiUrl}/polls/vote`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ OptionId: optionId })
-                });
-             } catch (error) {
-                console.error('Błąd podczas głosowania:', error);
-             } finally {
-                setTimeout(() => {
-                    optionElement.style.pointerEvents = 'auto';
-                }, 1000); 
-             }
-        }
+      optionElement.style.pointerEvents = "none";
 
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl(`${apiUrl}`)
-            .withAutomaticReconnect()
-            .build();
-
-        connection.on("newVote", (updatedPollId, updatedOptionId, newVoteCount) => {
-            if (currentPollData && updatedPollId === currentPollData.Id) {
-                const option = currentPollData.Options.find(o => o.Id === updatedOptionId);
-                if (option) {
-                    option.Votes = newVoteCount;
-                    renderOptions();
-                }
-            }
+      try {
+        await fetch(\`\${apiUrl}/polls/vote\`, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ OptionId: optionId }),
         });
-        
-        async function startSignalR() {
-            try {
-                await connection.start();
-                console.log("Połączono z SignalR.");
-            } catch (err) {
-                console.error("Błąd połączenia z SignalR:", err);
-            }
-        };
+      } catch (error) {
+        console.error("Błąd podczas głosowania:", error);
+      } finally {
+        setTimeout(() => {
+          optionElement.style.pointerEvents = "auto";
+        }, 1000);
+      }
+    }
 
-        fetchAndRenderPoll();
-        startSignalR();
-    </script>
+    const connection = new signalR.HubConnectionBuilder()
+      .withUrl(\`\${apiUrl}\`)
+      .withAutomaticReconnect()
+      .build();
+
+    connection.on("newVote", (updatedPollId, updatedOptionId, newVoteCount) => {
+      if (currentPollData && updatedPollId === currentPollData.Id) {
+        const option = currentPollData.Options.find((o) => o.Id === updatedOptionId);
+        if (option) {
+          option.Votes = newVoteCount;
+          renderOptions();
+        }
+      }
+    });
+
+    async function startSignalR() {
+      try {
+        await connection.start();
+        console.log("Połączono z SignalR.");
+      } catch (err) {
+        console.error("Błąd połączenia z SignalR:", err);
+      }
+    }
+
+    fetchAndRenderPoll();
+    startSignalR();
+  </script>
 </body>
 </html>
