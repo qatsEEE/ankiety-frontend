@@ -3,162 +3,249 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>System Ankiet w Czasie Rzeczywistym</title>
+    <title>Ankieta Motoryzacyjna</title>
+    <!-- Dodanie nowoczesnej czcionki z Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
+        /* === NOWY, PROFESJONALNY WYGLĄD Z ANIMACJAMI === */
+
+        :root {
+            --primary-color: #005f73;
+            --secondary-color: #0a9396;
+            --background-color: #e9d8a6;
+            --card-background: #ffffff;
+            --text-color: #001219;
+            --light-gray: #f1f1f1;
+            --shadow-color: rgba(0, 95, 115, 0.2);
+            --glow-color: rgba(10, 147, 150, 0.5);
+        }
+
+        /* Definicje animacji (Keyframes) */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 var(--glow-color); }
+            70% { box-shadow: 0 0 0 10px rgba(10, 147, 150, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(10, 147, 150, 0); }
+        }
+
+
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
-            background-color: #f4f7f6;
-            color: #333;
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, var(--primary-color), var(--secondary-color));
+            color: var(--text-color);
             margin: 0;
             padding: 2rem;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: center;
             min-height: 100vh;
         }
+
         #app-container {
-            background-color: #ffffff;
-            border-radius: 12px;
-            box-shadow: 0 8px 30px rgba(0,0,0,0.1);
-            padding: 2rem 3rem;
+            background-color: var(--card-background);
+            border-radius: 20px;
+            box-shadow: 0 15px 40px var(--shadow-color);
+            padding: 2.5rem 3.5rem;
             width: 100%;
-            max-width: 700px;
+            max-width: 750px;
         }
-        h1 {
-            color: #2c3e50;
+
+        h1, h2 {
             text-align: center;
+        }
+
+        h1 {
+            color: var(--primary-color);
+            font-weight: 700;
             margin-bottom: 0.5rem;
         }
         h2 {
-            color: #34495e;
+            color: #495057;
             margin-top: 0;
-            margin-bottom: 2rem;
-            text-align: center;
+            margin-bottom: 2.5rem;
             font-weight: 400;
         }
+
+        /* Stylizacja i animacje opcji ankiety */
         .option {
             margin-bottom: 1.5rem;
+            cursor: pointer;
+            position: relative;
+            opacity: 0; /* Ukryte na start, do animacji */
+            transform: translateY(30px); /* Pozycja startowa do animacji */
+            animation: fadeInUp 0.5s ease-out forwards;
+            transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
         }
+
+        .option:hover {
+            transform: translateY(-5px) scale(1.02);
+            box-shadow: 0 12px 25px var(--shadow-color);
+            z-index: 10;
+        }
+
+        /* Animacja po kliknięciu */
+        .option.is-voting {
+            animation: pulse 1s ease-out;
+            pointer-events: none;
+        }
+
+        .option-label {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            padding: 0 5px;
+        }
+
+        .votes-display {
+            font-size: 0.9em;
+            color: #6c757d;
+        }
+
         .bar-container {
-            background-color: #eaf0f6;
-            border-radius: 5px;
-            height: 28px;
+            background-color: var(--light-gray);
+            border-radius: 8px;
+            height: 32px;
             overflow: hidden;
             margin-top: 0.5rem;
+            position: relative;
         }
         .bar {
-            background-color: #3498db;
+            background: linear-gradient(90deg, var(--secondary-color), var(--primary-color));
             height: 100%;
             display: flex;
             align-items: center;
-            justify-content: flex-end;
+            justify-content: center;
             color: white;
-            padding-right: 10px;
             font-size: 0.9em;
-            font-weight: bold;
+            font-weight: 600;
             box-sizing: border-box;
             white-space: nowrap;
-            transition: width 0.5s cubic-bezier(0.25, 1, 0.5, 1);
+            transition: width 0.6s cubic-bezier(0.68, -0.55, 0.27, 1.55); /* Zaawansowana animacja */
         }
-        button {
-            background-color: #3498db;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            padding: 10px 18px;
-            font-size: 1em;
-            cursor: pointer;
-            margin-top: 0.75rem;
-            transition: background-color 0.2s;
+
+        .loading-text, .error-text {
+            text-align: center;
+            padding: 3rem;
+            font-size: 1.2em;
+            color: #6c757d;
         }
-        button:hover {
-            background-color: #2980b9;
-        }
+
     </style>
 </head>
 <body>
-    <div id="app-container">
-        <h1>System Ankiet</h1>
-        <div id="poll-container">Ładowanie ankiety...</div>
-    </div>
+<div id="app-container">
+    <h1>Ankieta Motoryzacyjna</h1>
+    <div id="poll-container"><div class="loading-text">Ładowanie ankiety...</div></div>
+</div>
 
-    <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
-    <script>
-        const apiUrl = "https://ankietyapi-da.azurewebsites.net/api"; 
-        const pollIdToLoad = 1; 
-        
-        const container = document.getElementById('poll-container');
-        let currentPollData = null;
+<script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
+<script>
+    const apiUrl = "https://ankietyapi-da.azurewebsites.net/api";
+    const pollIdToLoad = 1;
 
-        async function fetchAndRenderPoll() {
-            try {
-                const response = await fetch(`${apiUrl}/polls/${pollIdToLoad}`);
-                if (!response.ok) {
-                    container.innerHTML = "<h2>Nie znaleziono ankiety o podanym ID. Użyj Postmana, aby ją stworzyć.</h2>";
-                    return;
-                }
-                currentPollData = await response.json();
-                renderOptions();
-            } catch (error) {
-                container.innerHTML = "<h2>Błąd podczas ładowania ankiety. Sprawdź konsolę (F12).</h2>";
-                console.error(error);
+    const container = document.getElementById('poll-container');
+    let currentPollData = null;
+
+    async function fetchAndRenderPoll() {
+        try {
+            const response = await fetch(`${apiUrl}/polls/${pollIdToLoad}`);
+            if (!response.ok) {
+                container.innerHTML = `<div class="error-text"><h2>Nie znaleziono ankiety o ID=${pollIdToLoad}.</h2><p>Użyj Postmana, aby ją stworzyć.</p></div>`;
+                return;
             }
+            currentPollData = await response.json();
+            renderOptions();
+        } catch (error) {
+            container.innerHTML = `<div class="error-text"><h2>Błąd podczas ładowania ankiety.</h2><p>Sprawdź konsolę (F12).</p></div>`;
+            console.error(error);
         }
+    }
 
-        function renderOptions() {
-            if (!currentPollData) return;
-            const totalVotes = currentPollData.Options.reduce((sum, opt) => sum + opt.Votes, 0);
-            
-            let html = `<h2>${currentPollData.Question}</h2>`;
-            currentPollData.Options.forEach(opt => {
-                const percentage = totalVotes > 0 ? ((opt.Votes / totalVotes) * 100).toFixed(1) : 0;
-                html += `
-                    <div class="option" id="option-${opt.Id}">
-                        <span>${opt.Text}</span>
-                        <div class="bar-container">
-                             <div class="bar" style="width: ${percentage}%;">${opt.Votes} głosów</div>
+    function renderOptions() {
+        if (!currentPollData) return;
+        const totalVotes = currentPollData.Options.reduce((sum, opt) => sum + opt.Votes, 0);
+
+        let html = `<h2>Która marka samochodów jest Twoim zdaniem najlepsza?</h2>`;
+        currentPollData.Options.forEach((opt, index) => { // Dodajemy index do pętli
+            const percentage = totalVotes > 0 ? ((opt.Votes / totalVotes) * 100).toFixed(1) : 0;
+            // Dodajemy styl z opóźnieniem animacji dla każdej opcji
+            html += `
+                    <div class="option" id="option-${opt.Id}" onclick="vote(${opt.Id})" style="animation-delay: ${index * 0.1}s">
+                        <div class="option-label">
+                            <span>${opt.Text}</span>
+                            <span class="votes-display">${opt.Votes} głosów</span>
                         </div>
-                        <button onclick="vote(${opt.Id})">Głosuj</button>
+                        <div class="bar-container">
+                             <div class="bar" style="width: ${percentage}%;">${percentage}%</div>
+                        </div>
                     </div>
                 `;
-            });
-            container.innerHTML = html;
-        }
+        });
+        container.innerHTML = html;
+    }
 
-        async function vote(optionId) {
+    async function vote(optionId) {
+        const optionElement = document.getElementById(`option-${optionId}`);
+        if (!optionElement) return;
+
+        // Dodaj klasę do animacji kliknięcia i zapobiegaj dalszym kliknięciom
+        optionElement.classList.add('is-voting');
+
+        try {
             await fetch(`${apiUrl}/polls/vote`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ OptionId: optionId })
             });
+        } catch (error) {
+            console.error('Błąd podczas głosowania:', error);
+        } finally {
+            // Usuń klasę animacji po jej zakończeniu
+            setTimeout(() => {
+                optionElement.classList.remove('is-voting');
+            }, 1000); // Czas trwania animacji pulse
         }
+    }
 
-        const connection = new signalR.HubConnectionBuilder()
-            .withUrl(`${apiUrl}`)
-            .withAutomaticReconnect()
-            .build();
+    const connection = new signalR.HubConnectionBuilder()
+        .withUrl(`${apiUrl}`)
+        .withAutomaticReconnect()
+        .build();
 
-        connection.on("newVote", (updatedPollId, updatedOptionId, newVoteCount) => {
-            if (currentPollData && updatedPollId === currentPollData.Id) {
-                const option = currentPollData.Options.find(o => o.Id === updatedOptionId);
-                if (option) {
-                    option.Votes = newVoteCount;
-                    renderOptions();
-                }
+    connection.on("newVote", (updatedPollId, updatedOptionId, newVoteCount) => {
+        if (currentPollData && updatedPollId === currentPollData.Id) {
+            const option = currentPollData.Options.find(o => o.Id === updatedOptionId);
+            if (option) {
+                option.Votes = newVoteCount;
+                renderOptions();
             }
-        });
-        
-        async function startSignalR() {
-            try {
-                await connection.start();
-                console.log("Połączono z SignalR.");
-            } catch (err) {
-                console.error("Błąd połączenia z SignalR:", err);
-            }
-        };
+        }
+    });
 
-        fetchAndRenderPoll();
-        startSignalR();
-    </script>
+    async function startSignalR() {
+        try {
+            await connection.start();
+            console.log("Połączono z SignalR.");
+        } catch (err) {
+            console.error("Błąd połączenia z SignalR:", err);
+        }
+    };
+
+    fetchAndRenderPoll();
+    startSignalR();
+</script>
 </body>
 </html>
