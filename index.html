@@ -9,7 +9,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"/>
 
-    <!-- SignalR (naprawione źródło) -->
+    <!-- SignalR -->
     <script src="https://cdn.jsdelivr.net/npm/@microsoft/signalr@8.0.0/dist/browser/signalr.min.js"></script>
 
     <!-- tsParticles Stars Preset -->
@@ -64,38 +64,10 @@
             width: 0;
             transition: width 0.3s ease;
         }
-        #tokenbox {
-            margin: 1rem auto 2rem auto;
-            max-width: 700px;
-            text-align: center;
-        }
-        #tokenfield {
-            width: 60%;
-            padding: 0.5rem;
-            border-radius: 8px;
-            border: none;
-        }
-        #settokbtn {
-            margin-left: 0.5rem;
-            padding: 0.5rem 1rem;
-            border-radius: 8px;
-            border: none;
-            background: #0055ff;
-            color: #fff;
-            font-weight: 600;
-            cursor: pointer;
-        }
     </style>
 </head>
 <body>
 <div id="tsparticles"></div>
-
-<div id="tokenbox">
-    <input type="text" id="tokenfield" placeholder="Wklej tu swój token JWT" />
-    <button id="settokbtn" onclick="saveToken()">Zapisz token</button>
-    <br>
-    <small style="color:#ccc;">Token jest przechowywany tylko w pamięci Twojej przeglądarki (localStorage)</small>
-</div>
 
 <div id="app-container">
     <h1>Ankieta: Ulubiona Marka Samochodu</h1>
@@ -112,18 +84,6 @@
         });
     })();
 
-    // --- JWT obsługa ---
-    function saveToken() {
-        const t = document.getElementById('tokenfield').value.trim();
-        localStorage.setItem('jwt_token', t);
-        alert('Token zapisany! Odświeżam ankietę...');
-        fetchAndRenderPoll();
-    }
-    // Automatycznie wstaw token z localStorage do pola input (po odświeżeniu strony)
-    document.addEventListener('DOMContentLoaded', function() {
-        document.getElementById('tokenfield').value = localStorage.getItem('jwt_token') || "";
-    });
-
     // --- Ankiety API ---
     const apiUrl = "https://ankietyapi-da.azurewebsites.net/api";
     const pollId = 1; // <- zmień na ID nowej ankiety jeśli chcesz wyświetlać inną!
@@ -132,16 +92,9 @@
     let currentPollData = null;
 
     async function fetchAndRenderPoll() {
-        const token = localStorage.getItem("jwt_token") || "";
         container.innerHTML = "Ładowanie...";
         try {
-            const resp = await fetch(`${apiUrl}/polls/${pollId}`, {
-                headers: { "Authorization": `Bearer ${token}` }
-            });
-            if (resp.status === 401) {
-                container.innerHTML = `<span style="color:#fa6">Brak autoryzacji – podaj prawidłowy token JWT powyżej!</span>`;
-                return;
-            }
+            const resp = await fetch(`${apiUrl}/polls/${pollId}`);
             if (!resp.ok) {
                 container.innerHTML = `<p>Nie znaleziono ankiety lub błąd API.</p>`;
                 return;
@@ -150,7 +103,7 @@
             renderOptions();
         } catch (err) {
             container.innerHTML = `<p>Błąd ładowania danych.</p>`;
-            console.error(err);
+            console.error('Failed to fetch poll:', err);
         }
     }
 
@@ -170,17 +123,16 @@
         container.innerHTML = html;
     }
 
-    // Głosowanie
+    // Głosowanie (publiczne)
     async function vote(id) {
-        const token = localStorage.getItem("jwt_token") || "";
         const el = document.getElementById(`opt-${id}`);
         if (el) el.style.pointerEvents = "none";
         try {
             await fetch(`${apiUrl}/polls/vote`, {
                 method: "POST",
                 headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": `Bearer ${token}`
+                    "Content-Type": "application/json"
+                    // Authorization NIE jest wymagany!
                 },
                 body: JSON.stringify({ OptionId: id })
             });
@@ -194,7 +146,7 @@
 
     // SignalR – realtime update
     const conn = new signalR.HubConnectionBuilder()
-        .withUrl(apiUrl)
+        .withUrl(`${apiUrl}/negotiate`)
         .withAutomaticReconnect()
         .build();
 
@@ -213,7 +165,7 @@
             console.log("Połączono z SignalR");
             fetchAndRenderPoll();
         } catch (e) {
-            console.error("SignalR error", e);
+            console.error("Błąd połączenia z SignalR:", e);
             fetchAndRenderPoll();
         }
     })();
