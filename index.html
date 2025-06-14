@@ -40,18 +40,20 @@
 <div class="container">
     <div class="row justify-content-center">
         <div class="col-lg-6 col-md-8">
-            <div class="card fade-in">
+            <div class="card fade-in" aria-live="polite">
                 <div class="card-body" id="pollContainer">
                     <div class="text-center">
-                        <div class="spinner-border" role="status"></div>
+                        <div class="spinner-border" role="status" aria-label="Ładowanie"></div>
                         <div>Ładowanie ankiety...</div>
                     </div>
                 </div>
             </div>
-            <div id="toast" class="toast align-items-center text-white bg-success border-0 position-fixed bottom-0 end-0 m-4" style="z-index:9999;" role="alert">
+            <div id="toast" class="toast align-items-center text-white bg-success border-0 position-fixed bottom-0 end-0 m-4"
+                style="z-index:9999; display:none;" role="alert" aria-live="assertive" aria-atomic="true" tabindex="0">
                 <div class="d-flex">
                     <div class="toast-body"></div>
-                    <button type="button" class="btn-close btn-close-white me-2 m-auto" onclick="hideToast()"></button>
+                    <button type="button" class="btn-close btn-close-white me-2 m-auto"
+                        onclick="hideToast()" aria-label="Zamknij powiadomienie"></button>
                 </div>
             </div>
         </div>
@@ -59,39 +61,49 @@
 </div>
 
 <script>
-const pollId = 1; // <- zmień na dynamiczne ID jeśli potrzeba
+/** Pobiera pollId z parametrów URL */
+function getPollId() {
+    const params = new URLSearchParams(window.location.search);
+    return params.has('pollId') ? parseInt(params.get('pollId')) : 1;
+}
+const pollId = getPollId();
 let pollData = null;
 
+/** Pokazuje powiadomienie toast */
 function showToast(msg, isError = false) {
     const toast = document.getElementById('toast');
     toast.classList.toggle('bg-success', !isError);
     toast.classList.toggle('bg-danger', isError);
     toast.querySelector('.toast-body').textContent = msg;
     toast.style.display = 'block';
-    setTimeout(hideToast, 3500);
+    toast.focus();
+    clearTimeout(window.toastTimeout);
+    window.toastTimeout = setTimeout(hideToast, 3500);
 }
 function hideToast() {
     document.getElementById('toast').style.display = 'none';
 }
 
-// Pobierz ankietę z backendu
+/** Pobierz ankietę z backendu */
 async function fetchPoll() {
     document.getElementById('pollContainer').innerHTML = `
         <div class="text-center">
-            <div class="spinner-border" role="status"></div>
+            <div class="spinner-border" role="status" aria-label="Ładowanie"></div>
             <div>Ładowanie ankiety...</div>
         </div>
     `;
-    const res = await fetch(`/api/polls/${pollId}`);
-    if (!res.ok) {
-        document.getElementById('pollContainer').innerHTML = `<div class="text-danger p-3">Nie znaleziono ankiety!</div>`;
-        return;
+    try {
+        const res = await fetch(`/api/polls/${pollId}`);
+        if (!res.ok) throw new Error();
+        pollData = await res.json();
+        renderPoll();
+    } catch {
+        document.getElementById('pollContainer').innerHTML =
+            `<div class="text-danger p-3">Nie znaleziono ankiety!</div>`;
     }
-    pollData = await res.json();
-    renderPoll();
 }
 
-// Wyświetl ankietę
+/** Wyświetl ankietę */
 function renderPoll() {
     const pollDiv = document.getElementById('pollContainer');
     let totalVotes = pollData.options.reduce((a, b) => a + b.votes, 0);
@@ -99,80 +111,88 @@ function renderPoll() {
         <h4 class="card-title text-center mb-3">${pollData.question}</h4>
         <div id="optionsList">
             ${pollData.options.map(option => `
-                <button class="btn btn-outline-primary option-btn" onclick="vote(${option.id})" id="option-btn-${option.id}">
+                <button class="btn btn-outline-primary option-btn" onclick="vote(${option.id})"
+                        id="option-btn-${option.id}" aria-label="Głosuj na: ${option.text}">
                     <span>${option.text}</span>
                 </button>
-                <div class="progress">
-                    <div class="progress-bar bg-info" role="progressbar" style="width: ${totalVotes ? option.votes/totalVotes*100 : 0}%" id="bar-${option.id}">
+                <div class="progress" aria-label="Procent głosów">
+                    <div class="progress-bar bg-info" role="progressbar"
+                        style="width: ${totalVotes ? option.votes/totalVotes*100 : 0}%"
+                        id="bar-${option.id}" aria-valuenow="${option.votes}"
+                        aria-valuemin="0" aria-valuemax="${totalVotes}">
                         ${totalVotes ? Math.round(option.votes/totalVotes*100) : 0}%
                     </div>
                 </div>
                 <div class="vote-count text-end" id="votes-${option.id}">${option.votes} głosów</div>
             `).join('')}
         </div>
-        <div class="text-center mt-3 text-secondary">Oddano głosów: <span id="totalVotes">${totalVotes}</span></div>
+        <div class="text-center mt-3 text-secondary">
+            Oddano głosów: <span id="totalVotes">${totalVotes}</span>
+        </div>
     `;
 }
 
-// Oddaj głos
+/** Oddaj głos */
 async function vote(optionId) {
-    // Zablokuj przyciski
     pollData.options.forEach(opt => document.getElementById('option-btn-' + opt.id).disabled = true);
-    const res = await fetch('/api/polls/vote', {
-        method: 'POST',
-        headers: {'Content-Type':'application/json'},
-        body: JSON.stringify({optionId})
-    });
-    if (res.ok) {
-        showToast('Twój głos został oddany!');
-    } else {
+    try {
+        const res = await fetch('/api/polls/vote', {
+            method: 'POST',
+            headers: {'Content-Type':'application/json'},
+            body: JSON.stringify({optionId})
+        });
+        if (res.ok) {
+            showToast('Twój głos został oddany!');
+        } else {
+            throw new Error();
+        }
+    } catch {
         showToast('Błąd podczas głosowania!', true);
     }
     // Po głosie - nie odświeżamy, czekamy na SignalR
 }
 
-// SignalR - nasłuchuj na nowe głosy
+/** SignalR - nasłuchuj na nowe głosy */
 async function setupSignalR() {
-    // Pobierz token połączenia
-    const res = await fetch('/api/negotiate', { method: 'POST' });
-    if (!res.ok) {
-        console.error('Nie można pobrać tokenu SignalR');
-        return;
-    }
-    const { url, accessToken } = await res.json();
-    const connection = new signalR.HubConnectionBuilder()
-        .withUrl(url, { accessTokenFactory: () => accessToken })
-        .withAutomaticReconnect()
-        .build();
+    try {
+        const res = await fetch('/api/negotiate', { method: 'POST' });
+        if (!res.ok) throw new Error();
+        const { url, accessToken } = await res.json();
+        const connection = new signalR.HubConnectionBuilder()
+            .withUrl(url, { accessTokenFactory: () => accessToken })
+            .withAutomaticReconnect()
+            .build();
 
-    connection.on('newVote', (pollIdR, optionId, votes) => {
-        if (pollData && pollData.id === pollIdR) {
-            // Znajdź opcję i zaktualizuj liczbę głosów
-            const option = pollData.options.find(o => o.id === optionId);
-            if (option) {
-                option.votes = votes;
-                // Przelicz sumę głosów
-                const totalVotes = pollData.options.reduce((a, b) => a + b.votes, 0);
-                document.getElementById('votes-' + optionId).textContent = votes + ' głosów';
-                document.getElementById('totalVotes').textContent = totalVotes;
-                // Procentowe słupki
-                pollData.options.forEach(opt => {
-                    const bar = document.getElementById('bar-' + opt.id);
-                    const percent = totalVotes ? Math.round(opt.votes/totalVotes*100) : 0;
-                    bar.style.width = percent + '%';
-                    bar.textContent = percent + '%';
-                });
+        connection.on('newVote', (pollIdR, optionId, votes) => {
+            if (pollData && pollData.id === pollIdR) {
+                const option = pollData.options.find(o => o.id === optionId);
+                if (option) {
+                    option.votes = votes;
+                    const totalVotes = pollData.options.reduce((a, b) => a + b.votes, 0);
+                    document.getElementById('votes-' + optionId).textContent = votes + ' głosów';
+                    document.getElementById('totalVotes').textContent = totalVotes;
+                    pollData.options.forEach(opt => {
+                        const bar = document.getElementById('bar-' + opt.id);
+                        const percent = totalVotes ? Math.round(opt.votes/totalVotes*100) : 0;
+                        bar.style.width = percent + '%';
+                        bar.textContent = percent + '%';
+                    });
+                }
             }
-        }
-    });
+        });
 
-    connection.start()
-        .then(() => console.log('SignalR connected!'))
-        .catch(err => console.error('SignalR error:', err));
+        connection.start()
+            .then(() => console.log('SignalR connected!'))
+            .catch(err => showToast('Błąd połączenia SignalR', true));
+    } catch {
+        showToast('Nie można połączyć z SignalR!', true);
+    }
 }
 
+// Inicjalizacja
 fetchPoll();
 setupSignalR();
+
 </script>
 </body>
 </html>
